@@ -143,5 +143,5 @@ Most radios only need a new entry in `RadioModel.all` (`Sources/CAT2RIGCore/Radi
 ## License
 
 [MIT](LICENSE)
-
+SP5XTF
 73!
