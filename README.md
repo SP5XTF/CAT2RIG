@@ -70,7 +70,7 @@ xattr -dr com.apple.quarantine /Applications/CAT2RIG.app
 ### Build from source
 
 ```bash
-git clone https://github.com/<your-user>/CAT2RIG.git
+git clone https://github.com/SP5XTF/CAT2RIG.git
 cd CAT2RIG
 bash build_app.sh          # CAT2RIG.app
 bash build_dmg.sh          # CAT2RIG-X.Y.dmg
