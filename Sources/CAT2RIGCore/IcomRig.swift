@@ -9,6 +9,7 @@ public enum CIV {
     static let setMode: UInt8 = 0x06
     static let selectVFO: UInt8 = 0x07       // bez danych: przejście z trybu pamięci do VFO
     static let selectMemory: UInt8 = 0x08
+    static let meter: UInt8 = 0x15          // 15 02 = S-metr, 15 11 = moc
     static let dataMode: UInt8 = 0x1A       // 1A 06 = tryb DATA (USB-D…)
     static let ptt: UInt8 = 0x1C            // 1C 00 = PTT (nie w IC-706)
     static let ack: UInt8 = 0xFB
@@ -72,6 +73,10 @@ public final class IcomRig: RigBackend, @unchecked Sendable {
     /// Radio ma tryb DATA ustawiany komendą 0x1A 0x06 (IC-7300, IC-705, IC-7100, IC-9700…).
     private let dataModeCommand: Bool
     private var dataMode = false
+    /// Radio ma miernik mocy 15 11 (nowsze Icomy).
+    private let powerMeterCommand: Bool
+    private var sMeter: Int?
+    private var power: Int?
     private let log: (String) -> Void
 
     private let stateLock = NSLock()
@@ -109,9 +114,10 @@ public final class IcomRig: RigBackend, @unchecked Sendable {
     public init(transport: SerialTransport, pttTransport: SerialTransport? = nil,
                 rigAddr: UInt8 = 0x58, pollInterval: TimeInterval = 0.5,
                 responseTimeout: TimeInterval = 0.5, pttMethod: PTTMethod = .off,
-                dataModeCommand: Bool = false,
+                dataModeCommand: Bool = false, powerMeterCommand: Bool = false,
                 log: @escaping (String) -> Void = { _ in }) {
         self.dataModeCommand = dataModeCommand
+        self.powerMeterCommand = powerMeterCommand
         self.port = transport
         self.pttPort = pttTransport
         self.rigAddr = rigAddr
@@ -148,7 +154,8 @@ public final class IcomRig: RigBackend, @unchecked Sendable {
         let recentChanges = freqChangeTimes.filter { now.timeIntervalSince($0) <= Self.scanWindow }.count
         let reported = dataMode && ["USB", "LSB", "FM"].contains(mode) ? "PKT" + mode : mode
         return RigState(freq: freq, mode: reported, width: width, ptt: ptt, online: online,
-                        scanning: recentChanges >= Self.scanMinChanges)
+                        scanning: recentChanges >= Self.scanMinChanges,
+                        sMeterDB: ptt ? nil : sMeter, powerPercent: ptt ? power : nil)
     }
 
     // MARK: odbiór
@@ -243,6 +250,16 @@ public final class IcomRig: RigBackend, @unchecked Sendable {
                 width = (filter == 3 ? CIV.narrowWidth[m] : CIV.normalWidth[m]) ?? 2400
             }
             lastSeen = Date()
+        case CIV.meter:
+            // odpowiedź na 15 02 (S-metr) / 15 11 (moc): [podkomenda, BCD, BCD]
+            if data.count >= 3, let raw = Meters.bcd2(data[1], data[2]) {
+                if data[0] == 0x02 {
+                    sMeter = Int(Meters.interpolate(Double(raw), Meters.icomSMeter).rounded())
+                } else if data[0] == 0x11 {
+                    power = Int(Meters.interpolate(Double(raw), Meters.icomPower).rounded())
+                }
+                lastSeen = Date()
+            }
         case CIV.dataMode:
             // odpowiedź na 1A 06: [06, dane 00–03, filtr]
             if data.count >= 2 && data[0] == 0x06 {
@@ -300,6 +317,11 @@ public final class IcomRig: RigBackend, @unchecked Sendable {
             pollUnlessClientWaiting(CIV.readMode)
             if dataModeCommand {
                 pollUnlessClientWaiting(CIV.dataMode, [0x06])
+            }
+            if state.ptt {
+                if powerMeterCommand { pollUnlessClientWaiting(CIV.meter, [0x11]) }
+            } else {
+                pollUnlessClientWaiting(CIV.meter, [0x02])
             }
             let s = state
             if s.online != wasOnline && isRunning {

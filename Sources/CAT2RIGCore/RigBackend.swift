@@ -21,6 +21,10 @@ public struct RigState: Equatable {
     public var online = false
     /// Szybkie zmiany częstotliwości – radio skanuje (SCAN) albo ktoś szybko kręci gałką.
     public var scanning = false
+    /// S-metr w dB względem S9 (S0 = -54, S9 = 0, S9+60 = 60); nil – radio/sterownik nie podaje.
+    public var sMeterDB: Int? = nil
+    /// Moc wyjściowa w % (tylko podczas nadawania); nil – brak odczytu.
+    public var powerPercent: Int? = nil
 }
 
 /// Wspólny interfejs sterowników radia (Icom/Xiegu CI-V, Yaesu, Kenwood/Elecraft).

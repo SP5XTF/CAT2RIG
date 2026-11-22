@@ -114,7 +114,7 @@ final class RigctlProtocolTests: XCTestCase {
     }
 
     func testUnknownCommandIsNotAvailable() {
-        XCTAssertEqual(cmd("l STRENGTH"), "RPRT -11\n")
+        XCTAssertEqual(cmd("l AF"), "RPRT -11\n")
         XCTAssertEqual(cmd("\\foo_bar 1 2 3"), "RPRT -11\n")
     }
 }

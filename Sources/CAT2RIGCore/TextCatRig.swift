@@ -15,6 +15,9 @@ public struct TextCatDialect {
     public let pttOff: String
     /// Komendy wysyłane raz po połączeniu (np. wyłączenie Auto Information).
     public let prepare: [String]
+    /// Mierniki (nil – brak): zapytanie S-metra i mocy, prefiks odpowiedzi i kalibracja.
+    public let sMeterQuery: (query: String, prefix: String, cal: Meters.Cal)?
+    public let powerQuery: (query: String, prefix: String, cal: Meters.Cal)?
 
     /// Kenwood (TS-590, TS-480, TS-2000) i Elecraft (K3, KX2/KX3, K4).
     public static func kenwood(freqDigits: Int = 11) -> TextCatDialect {
@@ -26,7 +29,8 @@ public struct TextCatDialect {
                        "RTTY": "6", "CWR": "7", "RTTYR": "9",
                        "PKTUSB": "2", "PKTLSB": "1", "PKTFM": "4"],
             pttOn: "TX;", pttOff: "RX;",
-            prepare: ["AI0;"])
+            prepare: ["AI0;"],
+            sMeterQuery: nil, powerQuery: nil)       // skale S-metra różnią się między modelami
     }
 
     /// Nowsze Yaesu (FT-991/991A, FT-891, FT-710, FTDX10, FTDX101, FT-950, FT-450).
@@ -40,7 +44,9 @@ public struct TextCatDialect {
                        "RTTY": "6", "CWR": "7", "PKTLSB": "8", "RTTYR": "9",
                        "PKTFM": "A", "PKTUSB": "C"],
             pttOn: "TX1;", pttOff: "TX0;",
-            prepare: ["AI0;"])
+            prepare: ["AI0;"],
+            sMeterQuery: ("SM0;", "SM0", Meters.yaesuSMeter),
+            powerQuery: ("RM5;", "RM5", Meters.yaesuPower))
     }
 }
 
@@ -64,6 +70,19 @@ final class TextCatRig: PolledSerialRig, @unchecked Sendable {
     override func pollOnce() {
         if let f = queryFreq() { updateFreq(f) }
         if let m = queryMode() { updateMode(m) }
+        if isTransmitting {
+            if let q = dialect.powerQuery { updatePower(readMeter(q).map { Int($0.rounded()) }) }
+        } else if let q = dialect.sMeterQuery {
+            updateSMeter(readMeter(q).map { Int($0.rounded()) })
+        }
+    }
+
+    /// Odczyt miernika: pierwsze 3 cyfry po prefiksie (np. "SM0130", "RM5147000").
+    private func readMeter(_ q: (query: String, prefix: String, cal: Meters.Cal)) -> Double? {
+        guard send(q.query), let r = readText(prefix: q.prefix) else { return nil }
+        let digits = r.dropFirst(q.prefix.count).prefix(3)
+        guard let raw = Int(digits) else { return nil }
+        return Meters.interpolate(Double(raw), q.cal)
     }
 
     private func queryFreq() -> Int? {

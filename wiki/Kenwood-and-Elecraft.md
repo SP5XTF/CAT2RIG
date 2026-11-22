@@ -1,13 +1,16 @@
-# Kenwood and Elecraft
+# Kenwood, Elecraft, QRP Labs, (tr)uSDX
 
-Both use the Kenwood text CAT protocol (`FA00014074000;`, `MD2;`).
+All of them use the Kenwood text CAT protocol (`FA00014074000;`, `MD2;`).
 
 | Model | Default baud |
 |---|---|
 | Kenwood TS-590S/SG | 115200 |
 | Kenwood TS-480 | 57600 |
 | Kenwood TS-2000 | 57600 |
+| Elecraft K2 | 4800 |
 | Elecraft K3/K3S, KX2/KX3, K4 | 38400 |
+| QRP Labs QDX / QCX / QMX | 9600 (USB: any) |
+| (tr)uSDX | 38400 |
 
 Set the same rate in the radio's menu. Stop bits 1, no RTS/CTS.
 

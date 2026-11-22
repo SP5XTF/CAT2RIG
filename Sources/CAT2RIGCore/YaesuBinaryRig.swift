@@ -70,6 +70,14 @@ final class YaesuBinaryRig: PolledSerialRig, @unchecked Sendable {
         guard let st = readStatus() else { return }
         updateFreq(st.0)
         if let m = st.1 { updateMode(m) }
+        // 0xE7 – status odbioru (S-metr w młodszych 4 bitach), 0xF7 – nadawania (moc)
+        if isTransmitting {
+            if command([0, 0, 0, 0], 0xF7), let b = readBytes(count: 1), b[0] != 0xFF {
+                updatePower(Int(b[0] & 0x0F) * 100 / 15)
+            }
+        } else if command([0, 0, 0, 0], 0xE7), let b = readBytes(count: 1) {
+            updateSMeter(Meters.ft817SMeter(Int(b[0] & 0x0F)))
+        }
     }
 
     override func doSetFreq(_ hz: Int) -> HamlibErr {

@@ -4,7 +4,9 @@
 
 **Czy kilka programów może naraz używać radia?** Tak – każdy łączy się z CAT2RIG przez TCP.
 
-**Czy odczytuje S-metr, moc, SWR?** Jeszcze nie. W WSJT-X odznacz *Read and display PWR and SWR*.
+**Czy trzeba instalować Hamlib?** Nie – jest w zestawie. Sterowniki wbudowane w ogóle go nie używają; korzysta z niego sterownik *Hamlib*.
+
+**Czy odczytuje S-metr, moc, SWR?** S-metr i moc – tak, od wersji 1.7.0 (gdy radio je podaje). SWR – jeszcze nie, więc w WSJT-X zostaw odznaczone *Read and display PWR and SWR*.
 
 **Czy aplikacja jest podpisana przez Apple?** Podpisana lokalnie (ad-hoc), bez notaryzacji – przy pierwszym uruchomieniu prawy przycisk → Otwórz.
 

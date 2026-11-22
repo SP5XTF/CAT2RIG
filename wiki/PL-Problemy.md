@@ -17,4 +17,4 @@ Najpierw zaznacz w CAT2RIG **Pokaż ramki CAT** – log pokaże wtedy wszystko, 
 Kody: `RPRT 0` OK · `-1` zły argument · `-5` radio nie odpowiada · `-9` radio odrzuciło komendę · `-11` komenda nieobsługiwana
 
 ## Zgłaszanie problemu
-[Zgłoś issue](https://github.com/<your-user>/CAT2RIG/issues/new/choose): wersja CAT2RIG (dół okna), wersja macOS, model radia, interfejs, prędkość, ustawienia PTT w CAT2RIG i w kliencie oraz log z zaznaczonym *Pokaż ramki CAT*.
+[Zgłoś issue](https://github.com/SP5XTF/CAT2RIG/issues/new/choose): wersja CAT2RIG (dół okna), wersja macOS, model radia, interfejs, prędkość, ustawienia PTT w CAT2RIG i w kliencie oraz log z zaznaczonym *Pokaż ramki CAT*.

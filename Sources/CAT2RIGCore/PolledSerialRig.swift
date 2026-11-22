@@ -26,6 +26,8 @@ class PolledSerialRig: RigBackend, @unchecked Sendable {
     private var lastSeen = Date.distantPast
     private var changeTimes: [Date] = []
     private var commandedFreq: Int?
+    private var sMeter: Int?
+    private var power: Int?
 
     /// Bajty odebrane, a jeszcze nieprzetworzone (dostęp tylko pod ioLock).
     var pending: [UInt8] = []
@@ -75,7 +77,8 @@ class PolledSerialRig: RigBackend, @unchecked Sendable {
         let online = now.timeIntervalSince(lastSeen) < max(3.0, pollInterval * 3)
         let recent = changeTimes.filter { now.timeIntervalSince($0) <= ScanDetection.window }.count
         return RigState(freq: freq, mode: mode, width: width, ptt: ptt, online: online,
-                        scanning: recent >= ScanDetection.minChanges)
+                        scanning: recent >= ScanDetection.minChanges,
+                        sMeterDB: ptt ? nil : sMeter, powerPercent: ptt ? power : nil)
     }
 
     func updateFreq(_ f: Int) {
@@ -90,11 +93,35 @@ class PolledSerialRig: RigBackend, @unchecked Sendable {
         lastSeen = now
     }
 
-    func updateMode(_ m: String, narrow: Bool = false) {
+    func updateMode(_ m: String, narrow: Bool = false, width w: Int? = nil) {
         lock.lock(); defer { lock.unlock() }
         mode = m
-        width = ModeWidths.width(for: m, narrow: narrow)
+        if let w = w, w > 0 {
+            width = w
+        } else {
+            width = ModeWidths.width(for: m, narrow: narrow)
+        }
         lastSeen = Date()
+    }
+
+    /// Odczyty mierników z podklas (nil = brak odczytu).
+    func updateSMeter(_ db: Int?) {
+        lock.lock(); sMeter = db; lock.unlock()
+    }
+
+    func updatePower(_ percent: Int?) {
+        lock.lock(); power = percent.map { max(0, min(100, $0)) }; lock.unlock()
+    }
+
+    /// Czy radio nadaje (do wyboru, który miernik odpytywać).
+    var isTransmitting: Bool {
+        lock.lock(); defer { lock.unlock() }
+        return ptt
+    }
+
+    /// Zapamiętuje stan PTT (dla podklas, które same obsługują setPTT).
+    func recordPTT(_ on: Bool) {
+        lock.lock(); ptt = on; lock.unlock()
     }
 
     func markCommanded(_ hz: Int) {

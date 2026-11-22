@@ -12,20 +12,11 @@
 5. Something wrong? [Troubleshooting](Troubleshooting) · [FAQ](FAQ)
 
 ## Supported radios
+**41 models**: Icom (IC-706MKIIG … IC-7610, IC-9700), Xiegu (G90, X6100, X5105, X108G), Yaesu (FT-991A, FT-891, FT-710, FTDX series, FT-817/857/897 …), Kenwood (TS-590, TS-480, TS-2000), Elecraft (K2, K3, KX2/KX3, K4), QRP Labs (QDX/QCX/QMX) and (tr)uSDX.
 
-| Maker | Models | Protocol | CAT PTT | DATA mode |
-|---|---|---|---|---|
-| Icom | IC-706MKIIG, IC-718 | CI-V | – | – |
-| Icom | IC-7000 | CI-V | ✓ | – |
-| Icom | IC-7100, IC-7300, IC-705, IC-9700, IC-7610 | CI-V | ✓ | ✓ USB-D |
-| Icom | other CI-V models | CI-V | ✓ | – |
-| Xiegu | G90, X6100, X5105 | CI-V | ✓ | – |
-| Yaesu | FT-991/991A, FT-891, FT-710, FTDX10, FTDX101, FT-950, FT-450D | text CAT | ✓ | ✓ DATA-U |
-| Yaesu | FT-817/818, FT-857, FT-897 | binary CAT | ✓ | (DIG) |
-| Kenwood | TS-590S/SG, TS-480, TS-2000 | Kenwood CAT | ✓ | – |
-| Elecraft | K3/K3S, KX2/KX3, K4 | Kenwood CAT | ✓ | – |
+**Any other radio:** 300+ more models through the built-in [Hamlib driver](Hamlib-Driver) – nothing to install.
 
-Verified on real hardware: IC-706MKIIG. Other drivers are tested with protocol simulators – reports are welcome (see [Troubleshooting → Reporting a problem](Troubleshooting#reporting-a-problem)).
+➡ **[Full table with CI-V addresses, baud rates, CAT PTT, DATA mode and Hamlib numbers](Supported-Radios)**
 
 ## For developers
 [Building from source](Building-from-Source) · [Developer guide](Developer-Guide) – architecture, adding a radio, tests, releases.

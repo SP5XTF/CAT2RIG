@@ -211,7 +211,29 @@ final class RadioModelTests: XCTestCase {
             XCTAssertGreaterThan(m.defaultBaud, 0, m.id)
         }
         XCTAssertFalse(model("ic706mk2g").catPTT, "IC-706MKIIG nie ma PTT po CI-V")
-        XCTAssertEqual(RadioModel.manufacturers, ["Icom", "Xiegu", "Yaesu", "Kenwood", "Elecraft"])
+        XCTAssertEqual(RadioModel.manufacturers,
+                       ["Icom", "Xiegu", "Yaesu", "Kenwood", "Elecraft", "QRP Labs", "DL2MAN"])
+    }
+
+    func testHamlibNumbers() {
+        // numery z `rigctl -l` (Hamlib 4.7.1) – unikalne, w zakresie producenta
+        let numbered = RadioModel.all.filter { $0.hamlibID != 0 }
+        XCTAssertEqual(numbered.count, RadioModel.all.count - 1, "tylko „inny model CI-V” bez numeru")
+        XCTAssertEqual(Set(numbered.map(\.hamlibID)).count, numbered.count, "zdublowany numer Hamlib")
+        for m in numbered {
+            switch m.kind {
+            case .icom: XCTAssertTrue((3000..<4000).contains(m.hamlibID), m.id)
+            case .yaesuText, .yaesuBinary: XCTAssertTrue((1000..<2000).contains(m.hamlibID), m.id)
+            case .kenwood: XCTAssertTrue((2000..<3000).contains(m.hamlibID), m.id)
+            }
+        }
+        XCTAssertEqual(model("ic706mk2g").hamlibID, 3011)
+        XCTAssertEqual(model("ft710").hamlibID, 1049)
+    }
+
+    func testVerifiedModels() {
+        XCTAssertTrue(model("ic706mk2g").verified)
+        XCTAssertGreaterThanOrEqual(RadioModel.all.filter(\.verified).count, 1)
     }
 
     func testFactoryPicksDriver() {
@@ -225,5 +247,19 @@ final class RadioModelTests: XCTestCase {
         XCTAssertTrue(make("ft991") is TextCatRig)
         XCTAssertTrue(make("ts590") is TextCatRig)
         XCTAssertTrue(make("ft817") is YaesuBinaryRig)
+    }
+}
+
+// MARK: - Adresy projektu
+
+final class ProjectLinksTests: XCTestCase {
+    func testLinksPointToRepository() {
+        let all = [ProjectLinks.repository, ProjectLinks.wiki, ProjectLinks.wikiPL,
+                   ProjectLinks.releases, ProjectLinks.newIssue, ProjectLinks.wikiGit]
+        for url in all {
+            XCTAssertEqual(url.scheme, "https", url.absoluteString)
+            XCTAssertEqual(url.host, "github.com", url.absoluteString)
+            XCTAssertTrue(url.path.hasPrefix("/SP5XTF/CAT2RIG"), url.absoluteString)
+        }
     }
 }

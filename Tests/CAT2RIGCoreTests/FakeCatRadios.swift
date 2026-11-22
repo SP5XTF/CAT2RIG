@@ -61,6 +61,9 @@ final class FakeTextRadio: FakeSerialBase {
     private var partial = ""
     /// Częstotliwości powyżej tej wartości radio odrzuca ("?;").
     var maxFreq = 470_000_000
+    /// Yaesu: odczyt S-metra (SM0) i mocy (RM5), 0–255.
+    var sRaw = 130
+    var poRaw = 147
 
     init(kind: Kind, freq: Int = 14_074_000, mode: String = "2") {
         self.kind = kind
@@ -100,6 +103,8 @@ final class FakeTextRadio: FakeSerialBase {
             if v > maxFreq { reply("?;") } else { _freq = v }
             return
         }
+        if kind == .yaesu && cmd == "SM0" { reply(String(format: "SM0%03d;", sRaw)); return }
+        if kind == .yaesu && cmd == "RM5" { reply(String(format: "RM5%03d000;", poRaw)); return }
         if cmd == modePrefix { reply(modePrefix + _mode + ";"); return }
         if cmd.hasPrefix(modePrefix) { _mode = String(cmd.dropFirst(modePrefix.count)); return }
         switch cmd {
@@ -123,6 +128,9 @@ final class FakeFT817: FakeSerialBase {
     private var _ptt = false
     /// Czy radio odsyła bajt potwierdzenia po komendach ustawiających.
     var sendsAck = false
+    /// S-metr i moc (0–15) w odpowiedziach 0xE7 / 0xF7.
+    var sNibble: UInt8 = 9
+    var poNibble: UInt8 = 15
 
     init(freq: Int = 7_074_000, mode: UInt8 = 0x01) {
         _freq = freq
@@ -155,6 +163,10 @@ final class FakeFT817: FakeSerialBase {
             case 0x88:
                 rxBuffer += [_ptt ? 0x00 : 0xF0]
                 _ptt = false
+            case 0xE7:
+                rxBuffer += [0x40 | sNibble]                 // starsze bity: inne flagi
+            case 0xF7:
+                rxBuffer += [_ptt ? (0x80 | poNibble) : 0xFF]
             default:
                 break
             }

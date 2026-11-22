@@ -35,7 +35,7 @@ public enum RigctlProtocol {
         "10",           // preamp
         "20",           // tłumik
         "0x0", "0x0",   // funkcje get/set
-        "0x0", "0x0",   // poziomy get/set
+        "0x140000000", "0x0",   // poziomy get (STRENGTH, RFPOWER_METER) / set
         "0x0", "0x0",   // parametry get/set
         "vfo_ops=0x0",
         "ptt_type=0x1", // RIG_PTT_RIG – klient wysyła PTT do nas
@@ -59,6 +59,7 @@ public enum RigctlProtocol {
         "\\get_ptt": "t", "\\set_ptt": "T",
         "\\get_split_vfo": "s", "\\set_split_vfo": "S",
         "\\quit": "q",
+        "\\get_level": "l",
     ]
 
     static func rprt(_ e: HamlibErr) -> String { "RPRT \(e.rawValue)\n" }
@@ -119,6 +120,20 @@ public enum RigctlProtocol {
             return rprt(.ok)
         case "s":
             return "0\nVFOA\n"
+        case "l":
+            // S-metr i moc (gdy radio/sterownik je podaje)
+            let s = rig.state
+            switch args.first?.uppercased() {
+            case "STRENGTH":
+                guard let db = s.sMeterDB else { return rprt(.enavail) }
+                return "\(db)\n"
+            case "RFPOWER_METER":
+                guard s.ptt else { return "0.000000\n" }
+                guard let p = s.powerPercent else { return rprt(.enavail) }
+                return String(format: "%.6f\n", Double(p) / 100)
+            default:
+                return rprt(.enavail)
+            }
         case "S":
             return rprt((args.first ?? "0") == "0" ? .ok : .enavail)
 

@@ -1,7 +1,9 @@
 # Yaesu
 
 ## Newer radios – text CAT
-FT-991/991A, FT-891, FT-710, FTDX10, FTDX101, FT-950, FT-450D
+FT-991/991A, FT-891, FT-710, FTDX10, FTDX101, FTDX5000, FTDX3000, FTDX1200, FT-2000, FT-950, FT-450/450D
+
+FTDX5000/3000/1200, FT-2000, FT-950 and FT-450 use 8-digit frequencies, the others 9 – CAT2RIG handles this per model.
 
 | Setting | Default in CAT2RIG |
 |---|---|

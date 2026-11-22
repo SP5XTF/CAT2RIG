@@ -38,9 +38,17 @@ var appVersionString: String {
 
 struct HelpMenuButton: View {
     @Environment(\.openWindow) private var openWindow
+    @Environment(\.openURL) private var openURL
     var body: some View {
         Button("Pomoc CAT2RIG") { openWindow(id: "help") }
             .keyboardShortcut("?", modifiers: .command)
+        Divider()
+        Button("Wiki CAT2RIG") {
+            openURL(LanguageSettings.effective == "en" ? ProjectLinks.wiki : ProjectLinks.wikiPL)
+        }
+        Button("Sprawdź nowe wersje…") { openURL(ProjectLinks.releases) }
+        Button("Zgłoś problem…") { openURL(ProjectLinks.newIssue) }
+        Button("Strona projektu na GitHubie") { openURL(ProjectLinks.repository) }
     }
 }
 
@@ -73,6 +81,16 @@ final class BridgeModel: ObservableObject {
     @Published var modelID: String {
         didSet { if modelID != oldValue { applyModelDefaults() } }
     }
+    /// "native" = sterowniki CAT2RIG, "hamlib" = biblioteka Hamlib (wszystkie modele).
+    @Published var driver: String {
+        didSet {
+            if driver == "hamlib" && hamlibModel == 0 && radioModel.hamlibID != 0 {
+                hamlibModel = radioModel.hamlibID
+            }
+        }
+    }
+    /// Numer modelu Hamlib (rigctl -l).
+    @Published var hamlibModel: Int
     @Published var baud: Int
     @Published var civAddr: String
     @Published var stopBits: Int
@@ -88,6 +106,9 @@ final class BridgeModel: ObservableObject {
     @Published var statusText = L("Zatrzymany")
     @Published var tx = false
     @Published var scanning = false
+    /// S-metr (dB wzgl. S9) i moc (%) – nil, gdy radio/sterownik nie podaje
+    @Published var sMeterDB: Int?
+    @Published var powerPercent: Int?
     @Published var logLines: [LogLine] = []
     @Published var errorMessage: String?
     @Published var testFreqMHz = "145.500"
@@ -110,6 +131,22 @@ final class BridgeModel: ObservableObject {
     private var rig: RigBackend?
 
     var radioModel: RadioModel { RadioModel.find(modelID) ?? .defaultModel }
+
+    var hamlib: HamlibLibrary? { HamlibLibrary.shared }
+    var usesHamlib: Bool { driver == "hamlib" && hamlib != nil }
+    var hamlibInfo: HamlibModelInfo? { hamlib?.model(hamlibModel) }
+
+    /// Czy pokazać pole adresu CI-V (Icom/Xiegu – także przez Hamlib).
+    var showsCIV: Bool {
+        if usesHamlib {
+            let maker = hamlibInfo?.manufacturer ?? ""
+            return maker == "Icom" || maker == "Xiegu"
+        }
+        return radioModel.usesCIV
+    }
+
+    /// Czy proponować PTT przez CAT (przez Hamlib zawsze – Hamlib sam zgłosi brak obsługi).
+    var offersCatPTT: Bool { usesHamlib || radioModel.catPTT }
 
     private func applyModelDefaults() {
         let r = radioModel
@@ -152,6 +189,8 @@ final class BridgeModel: ObservableObject {
         baud = defaults.object(forKey: "baud") as? Int ?? model.defaultBaud
         civAddr = defaults.string(forKey: "civAddr") ?? String(format: "%02X", Int(model.civAddress))
         stopBits = defaults.object(forKey: "stopBits") as? Int ?? model.stopBits
+        driver = defaults.string(forKey: "driver") ?? "native"
+        hamlibModel = defaults.integer(forKey: "hamlibModel")
         rtsCts = defaults.object(forKey: "rtsCts") as? Bool ?? model.rtsCts
         pttMethod = PTTMethod(rawValue: defaults.string(forKey: "ptt") ?? "") ?? .off
         pttPort = defaults.string(forKey: "pttPort") ?? ""
@@ -255,7 +294,15 @@ final class BridgeModel: ObservableObject {
             }
             return false
         }
-        guard !selectedPort.isEmpty else {
+        let viaHamlib = driver == "hamlib"
+        if viaHamlib && hamlib == nil {
+            return fail(L("Biblioteka Hamlib nie jest dostępna."))
+        }
+        if viaHamlib && hamlibModel <= 0 {
+            return fail(L("Wybierz model Hamlib."))
+        }
+        // model Hamlib „Dummy” (1) to symulator – nie potrzebuje portu
+        guard !selectedPort.isEmpty || (viaHamlib && hamlibModel == 1) else {
             return fail(L("Wybierz port radia."))
         }
         // adres CI-V zawsze szesnastkowo: "58", "0x58" albo "58h"
@@ -265,13 +312,13 @@ final class BridgeModel: ObservableObject {
             .trimmingCharacters(in: .whitespaces)
         let model = radioModel
         var addr: UInt8 = 0
-        if model.usesCIV {
+        if showsCIV {
             guard let a = UInt8(addrText, radix: 16) else {
                 return fail(L("Niepoprawny adres CI-V (np. 58)."))
             }
             addr = a
         }
-        if pttMethod == .cat && !model.catPTT {
+        if pttMethod == .cat && !offersCatPTT {
             return fail(L("To radio nie obsługuje PTT przez CAT – wybierz RTS, DTR albo brak / VOX."))
         }
         if rtsCts && pttMethod == .rts && (pttPort.isEmpty || pttPort == selectedPort) {
@@ -286,12 +333,20 @@ final class BridgeModel: ObservableObject {
         }
 
         do {
-            let r = try RigFactory.open(
-                model: model, portPath: selectedPort, baud: baud, civAddress: addr,
-                stopBits: stopBits, rtsCts: rtsCts, pttMethod: pttMethod,
-                // port PTT otwieramy tylko dla RTS/DTR – inaczej może go używać WSJT-X
-                pttPortPath: pttPort.isEmpty ? nil : pttPort,
-                log: logger)
+            let r: RigBackend
+            if viaHamlib {
+                r = try RigFactory.openHamlib(
+                    model: hamlibModel, portPath: selectedPort, baud: baud, stopBits: stopBits,
+                    rtsCts: rtsCts, civAddress: showsCIV ? addr : nil, pttMethod: pttMethod,
+                    pttPortPath: pttPort.isEmpty ? nil : pttPort, log: logger)
+            } else {
+                r = try RigFactory.open(
+                    model: model, portPath: selectedPort, baud: baud, civAddress: addr,
+                    stopBits: stopBits, rtsCts: rtsCts, pttMethod: pttMethod,
+                    // port PTT otwieramy tylko dla RTS/DTR – inaczej może go używać WSJT-X
+                    pttPortPath: pttPort.isEmpty ? nil : pttPort,
+                    log: logger)
+            }
             do {
                 let s = try RigctlServer(rig: r, port: tcp, lan: lan, log: logger)
                 s.onFailed = { [weak self] msg in
@@ -320,8 +375,14 @@ final class BridgeModel: ObservableObject {
         }
         running = true
         statusText = L("Łączenie z radiem…")
-        let civInfo = model.usesCIV ? ", CI-V \(addrText.uppercased())h" : ""
-        appendLog("Start: \(model.displayName), \(selectedPort) @ \(baud) bd\(civInfo) → rigctl "
+        let civInfo = showsCIV ? ", CI-V \(addrText.uppercased())h" : ""
+        let radioName: String
+        if viaHamlib, let lib = hamlib {
+            radioName = "\(lib.version): \(hamlibInfo?.displayName ?? "?") (#\(hamlibModel))"
+        } else {
+            radioName = model.displayName
+        }
+        appendLog("Start: \(radioName), \(selectedPort) @ \(baud) bd\(civInfo) → rigctl "
                   + "\(lan ? "0.0.0.0" : "127.0.0.1"):\(tcp)")
         return true
     }
@@ -329,6 +390,8 @@ final class BridgeModel: ObservableObject {
     private func saveSettings() {
         defaults.set(selectedPort, forKey: "port")
         defaults.set(modelID, forKey: "model")
+        defaults.set(driver, forKey: "driver")
+        defaults.set(hamlibModel, forKey: "hamlibModel")
         defaults.set(baud, forKey: "baud")
         defaults.set(civAddr, forKey: "civAddr")
         defaults.set(stopBits, forKey: "stopBits")
@@ -354,6 +417,8 @@ final class BridgeModel: ObservableObject {
         freqText = "---.---.---"
         modeText = ""
         tx = false
+        sMeterDB = nil
+        powerPercent = nil
         scanning = false
         appendLog(L("Zatrzymano"))
     }
@@ -395,6 +460,8 @@ final class BridgeModel: ObservableObject {
             statusText = L("Brak odpowiedzi radia…")
         }
         tx = s.ptt
+        sMeterDB = s.online ? s.sMeterDB : nil
+        powerPercent = s.online ? s.powerPercent : nil
         if s.scanning != scanning {
             scanning = s.scanning
             appendLog(scanning ? L("SCAN: szybkie zmiany częstotliwości (radio skanuje)")
@@ -425,20 +492,43 @@ struct ContentView: View {
             GroupBox("Radio") {
                 Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 8) {
                     GridRow {
+                        Text("Sterownik:")
+                        HStack {
+                            Picker("", selection: $m.driver) {
+                                Text("Wbudowany").tag("native")
+                                Text(verbatim: m.hamlib?.version ?? "Hamlib").tag("hamlib")
+                            }
+                            .pickerStyle(.segmented)
+                            .labelsHidden()
+                            .frame(width: 260)
+                            .disabled(m.hamlib == nil)
+                            .help("Wbudowany: sterowniki CAT2RIG (41 modeli). Hamlib: wszystkie radia obsługiwane przez bibliotekę Hamlib.")
+                            if m.hamlib == nil {
+                                Text("Hamlib niedostępny").font(.caption).foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    GridRow {
                         Text("Model:")
                         HStack {
+                            if m.usesHamlib, let lib = m.hamlib {
+                                HamlibModelMenu(library: lib, selection: $m.hamlibModel)
+                                    .frame(width: 260)
+                            } else {
                             Picker("", selection: $m.modelID) {
                                 ForEach(RadioModel.manufacturers, id: \.self) { maker in
                                     Section(maker) {
                                         ForEach(RadioModel.all.filter { $0.manufacturer == maker }) { r in
-                                            Text(r.displayName).tag(r.id)
+                                            Text(r.verified ? r.displayName + "  ✓" : r.displayName).tag(r.id)
                                         }
                                     }
                                 }
                             }
                             .labelsHidden()
                             .frame(width: 260)
-                            if m.radioModel.usesCIV {
+                            .help("✓ = sprawdzone na prawdziwym radiu; pozostałe modele przetestowano na symulatorach protokołów")
+                            }
+                            if m.showsCIV {
                                 Text("Adres CI-V:")
                                 TextField("58", text: $m.civAddr)
                                     .frame(width: 44)
@@ -485,7 +575,7 @@ struct ContentView: View {
                         HStack {
                             Picker("", selection: $m.pttMethod) {
                                 Text("brak / VOX").tag(PTTMethod.off)
-                                if m.radioModel.catPTT {
+                                if m.offersCatPTT {
                                     Text(verbatim: "CAT").tag(PTTMethod.cat)
                                 }
                                 Text("RTS").tag(PTTMethod.rts)
@@ -576,6 +666,8 @@ struct ContentView: View {
                     .clipShape(RoundedRectangle(cornerRadius: 5))
             }
 
+            MeterRow(tx: m.tx, sMeterDB: m.sMeterDB, powerPercent: m.powerPercent, running: m.running)
+
             ScrollViewReader { proxy in
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 1) {
@@ -604,6 +696,10 @@ struct ContentView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
+                Link(destination: LanguageSettings.effective == "en" ? ProjectLinks.wiki : ProjectLinks.wikiPL) {
+                    Label("Wiki", systemImage: "book")
+                }
+                .font(.callout)
                 Button {
                     openWindow(id: "help")
                 } label: {
@@ -624,5 +720,111 @@ struct ContentView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
             m.stop()
         }
+    }
+}
+
+
+/// Wybór modelu Hamlib: menu z podmenu dla każdego producenta (ponad 300 radiów).
+struct HamlibModelMenu: View {
+    let library: HamlibLibrary
+    @Binding var selection: Int
+
+    var body: some View {
+        Menu {
+            ForEach(library.manufacturers, id: \.self) { maker in
+                Menu(maker) {
+                    ForEach(library.models.filter { $0.manufacturer == maker }) { info in
+                        Button {
+                            selection = info.id
+                        } label: {
+                            Text(verbatim: info.status == 3
+                                 ? "\(info.name)  #\(info.id)"
+                                 : "\(info.name)  #\(info.id)  (\(info.statusName))")
+                        }
+                    }
+                }
+            }
+        } label: {
+            if let info = library.model(selection) {
+                Text(verbatim: "\(info.displayName)  #\(info.id)")
+            } else {
+                Text("Wybierz model…")
+            }
+        }
+    }
+}
+
+
+// MARK: - Mierniki
+
+/// Wskaźnik jak w radiu: S-metr podczas odbioru, moc podczas nadawania.
+struct MeterRow: View {
+    let tx: Bool
+    let sMeterDB: Int?
+    let powerPercent: Int?
+    let running: Bool
+
+    private static let sTicks: [(Double, String)] = [
+        (-48, "1"), (-36, "3"), (-24, "5"), (-12, "7"), (0, "9"), (20, "+20"), (40, "+40"), (60, "+60"),
+    ].map { (Meters.sFraction(Int($0.0)), $0.1) }
+    private static let powerTicks: [(Double, String)] = [
+        (0, "0"), (0.25, "25"), (0.5, "50"), (0.75, "75"), (1.0, "100%"),
+    ]
+
+    var body: some View {
+        if tx {
+            MeterBar(title: "PO",
+                     fraction: powerPercent.map { Double($0) / 100 },
+                     text: powerPercent.map { "\($0) %" } ?? "—",
+                     color: .red, ticks: Self.powerTicks)
+                .help("Moc wyjściowa w procentach mocy maksymalnej (gdy radio ją podaje)")
+        } else {
+            MeterBar(title: "S",
+                     fraction: sMeterDB.map(Meters.sFraction),
+                     text: sMeterDB.map(Meters.sText) ?? (running ? "—" : ""),
+                     color: sMeterDB.map { $0 > 0 ? Color.orange : Color.green } ?? .green,
+                     ticks: Self.sTicks)
+                .help("S-metr odczytany z radia (gdy radio go podaje)")
+        }
+    }
+}
+
+struct MeterBar: View {
+    let title: String
+    let fraction: Double?
+    let text: String
+    let color: Color
+    let ticks: [(Double, String)]
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(verbatim: title)
+                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                .frame(width: 26, alignment: .leading)
+            VStack(spacing: 1) {
+                GeometryReader { g in
+                    ZStack(alignment: .leading) {
+                        RoundedRectangle(cornerRadius: 3).fill(Color.gray.opacity(0.18))
+                        RoundedRectangle(cornerRadius: 3).fill(color)
+                            .frame(width: max(0, g.size.width * CGFloat(min(1, fraction ?? 0))))
+                    }
+                }
+                .frame(height: 10)
+                GeometryReader { g in
+                    ForEach(ticks.indices, id: \.self) { i in
+                        Text(verbatim: ticks[i].1)
+                            .font(.system(size: 9, design: .monospaced))
+                            .foregroundStyle(.secondary)
+                            .fixedSize()
+                            .position(x: g.size.width * CGFloat(ticks[i].0), y: 6)
+                    }
+                }
+                .frame(height: 12)
+            }
+            Text(verbatim: text)
+                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                .frame(width: 70, alignment: .trailing)
+        }
+        .animation(.linear(duration: 0.2), value: fraction)
     }
 }

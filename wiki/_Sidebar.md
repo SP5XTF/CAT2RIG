@@ -4,10 +4,12 @@
 - [Installation](Installation)
 - [Configuration](Configuration)
 - [WSJT-X Setup](WSJT-X-Setup)
-- Radios
+- [Supported Radios](Supported-Radios)
+- [Hamlib Driver](Hamlib-Driver)
+- Radio notes
   - [Icom and Xiegu](Icom-and-Xiegu)
   - [Yaesu](Yaesu)
-  - [Kenwood and Elecraft](Kenwood-and-Elecraft)
+  - [Kenwood, Elecraft, QRP](Kenwood-and-Elecraft)
 - [Troubleshooting](Troubleshooting)
 - [FAQ](FAQ)
 - Developers
@@ -21,5 +23,6 @@
 - [Konfiguracja](PL-Konfiguracja)
 - [WSJT-X](PL-WSJT-X)
 - [Radia](PL-Radia)
+- [Hamlib](PL-Hamlib)
 - [Problemy](PL-Problemy)
 - [FAQ](PL-FAQ)

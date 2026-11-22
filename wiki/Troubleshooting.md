@@ -18,4 +18,4 @@ Tick **Show CAT frames** in CAT2RIG first – the log then shows everything sent
 `RPRT 0` OK · `-1` invalid argument · `-5` radio not responding · `-9` rejected by the radio · `-11` command not supported
 
 ## Reporting a problem
-[Open an issue](https://github.com/<your-user>/CAT2RIG/issues/new/choose) with: CAT2RIG version (bottom of the window), macOS version, radio model, interface, baud rate, PTT settings in CAT2RIG and the client, and the log with *Show CAT frames* ticked.
+[Open an issue](https://github.com/SP5XTF/CAT2RIG/issues/new/choose) with: CAT2RIG version (bottom of the window), macOS version, radio model, interface, baud rate, PTT settings in CAT2RIG and the client, and the log with *Show CAT frames* ticked.

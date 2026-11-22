@@ -1,6 +1,6 @@
 # Configuration
 
-![main window](https://raw.githubusercontent.com/<your-user>/CAT2RIG/main/docs/screenshot.png)
+![main window](https://raw.githubusercontent.com/SP5XTF/CAT2RIG/main/docs/screenshot.png)
 
 ## Radio
 | Field | Meaning |
@@ -29,6 +29,7 @@ RTS/CTS and RTS-PTT on the same port can't be combined – CAT2RIG refuses to st
 
 ## Window
 - **Display** – frequency and mode read from the radio; **TX** red while transmitting; **SCAN** orange on rapid frequency changes.
+- **S / PO meter** – S-meter while receiving, output power (%) while transmitting, when the radio reports them (Icom/Xiegu, newer Yaesu, FT-817/857/897, Hamlib). “—” = no reading. Values are approximate.
 - **Control test** – set a frequency or key PTT without any client (PTT really transmits!).
 - **Log** – client set commands, unsupported commands, slow responses (≥ 300 ms). **Show CAT frames** adds raw traffic.
 - **Start automatically** – connect on launch; waits for the USB interface (retries every 5 s).

@@ -17,6 +17,8 @@ final class FakeRadio: SerialTransport {
     private var _filter: UInt8 = 2
     private var _memoryMode = false
     private var _dataMode: UInt8 = 0
+    private var _sRaw = 120                  // S-metr 0–255 (120 = S9)
+    private var _poRaw = 143                 // miernik mocy 0–255 (143 ≈ 50 %)
     private var _civPTT = false
 
     // scenariusz
@@ -45,6 +47,14 @@ final class FakeRadio: SerialTransport {
 
     var freq: Int { locked { _freq } }
     var dataMode: UInt8 { locked { _dataMode } }
+    var sRaw: Int {
+        get { locked { _sRaw } }
+        set { locked { _sRaw = newValue } }
+    }
+    var poRaw: Int {
+        get { locked { _poRaw } }
+        set { locked { _poRaw = newValue } }
+    }
     var civPTT: Bool { locked { _civPTT } }
     /// Tryb pamięci (V/M = MEMO). Jak w scenariuszu z prawdziwym radiem:
     /// w tym trybie radio odrzuca ustawienie częstotliwości (NAK).
@@ -164,6 +174,10 @@ final class FakeRadio: SerialTransport {
                 _dataMode = data[1]
                 reply([0xFB])
             }
+        case 0x15 where data.count == 1 && (data[0] == 0x02 || data[0] == 0x11):
+            let v = data[0] == 0x02 ? _sRaw : _poRaw
+            reply([0x15, data[0], UInt8((v / 1000 % 10) << 4 | (v / 100 % 10)),
+                   UInt8((v / 10 % 10) << 4 | (v % 10))])
         case 0x1C where data.first == 0x00 && data.count == 2:
             _civPTT = data[1] != 0
             reply([0xFB])

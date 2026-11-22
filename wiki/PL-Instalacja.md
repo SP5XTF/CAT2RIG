@@ -3,7 +3,7 @@
 **Wymagania:** macOS 13 Ventura lub nowszy (Apple Silicon albo Intel) oraz kabel/interfejs CAT lub USB do radia.
 
 ## Z wydania (zalecane)
-1. Pobierz `CAT2RIG-X.Y.dmg` z [Releases](https://github.com/<your-user>/CAT2RIG/releases).
+1. Pobierz `CAT2RIG-X.Y.dmg` z [Releases](https://github.com/SP5XTF/CAT2RIG/releases).
 2. Otwórz go i przeciągnij **CAT2RIG** do **Programów**.
 3. Pierwsze uruchomienie: aplikacja nie jest notaryzowana, więc kliknij ją prawym przyciskiem → **Otwórz** → **Otwórz**. Albo:
    ```bash

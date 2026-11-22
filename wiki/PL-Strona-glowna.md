@@ -8,7 +8,7 @@
 1. [Instalacja](PL-Instalacja)
 2. [Konfiguracja](PL-Konfiguracja) – model, port, PTT
 3. [WSJT-X i inne programy](PL-WSJT-X)
-4. Uwagi do radiów: [Obsługiwane radia](PL-Radia)
+4. Uwagi do radiów: [Obsługiwane radia](PL-Radia) · inne radia: [sterownik Hamlib](PL-Hamlib)
 5. Problem? [Rozwiązywanie problemów](PL-Problemy) · [FAQ](PL-FAQ)
 
 Dla programistów (po angielsku): [Building from source](Building-from-Source) · [Developer guide](Developer-Guide).

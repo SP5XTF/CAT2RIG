@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import CAT2RIGCore
 
 /// Okno pomocy (menu Pomoc lub ⌘?). Treść w dwóch językach, wybór wg języka programu.
 struct HelpView: View {
@@ -20,6 +21,10 @@ struct HelpView: View {
                         Text(appVersionString)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                        Link(destination: ProjectLinks.repository) {
+                            Text(verbatim: "github.com/SP5XTF/CAT2RIG")
+                        }
+                        .font(.caption)
                     }
                 }
                 ForEach(sections) { section in
@@ -33,6 +38,21 @@ struct HelpView: View {
                 }
             }
             .padding(24)
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Divider()
+            VStack(alignment: .leading, spacing: 4) {
+                if let lib = HamlibLibrary.shared {
+                    Text(verbatim: "\(lib.version) · LGPL 2.1 · \(lib.models.count) models")
+                    Text(verbatim: lib.path).textSelection(.enabled)
+                } else {
+                    Text("Hamlib niedostępny")
+                }
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minWidth: 520, minHeight: 400)
@@ -72,14 +92,18 @@ enum HelpContent {
         5. Zaznacz **Start automatycznie**, żeby przy kolejnych uruchomieniach łączyć się od razu.
         """),
         HelpSection(title: "Obsługiwane radia", body: """
-        • **Icom** (CI-V): IC-706MKIIG, IC-718, IC-7000, IC-7100, IC-7300, IC-705, IC-9700, IC-7610 \
-        oraz inne modele CI-V.
-        • **Xiegu** (CI-V): G90, X6100, X5105.
-        • **Yaesu** (nowszy CAT): FT-991/991A, FT-891, FT-710, FTDX10, FTDX101, FT-950, FT-450D.
+        • **Icom** (CI-V): IC-706MKIIG, IC-718, IC-746PRO, IC-756PROIII, IC-7000, IC-7200, \
+        IC-7410, IC-7600, IC-9100, IC-7100, IC-7300, IC-705, IC-9700, IC-7610 oraz inne modele CI-V.
+        • **Xiegu** (CI-V): G90, X6100, X5105, X108G.
+        • **Yaesu** (nowszy CAT): FT-991/991A, FT-891, FT-710, FTDX10, FTDX101, FTDX5000, \
+        FTDX3000, FTDX1200, FT-2000, FT-950, FT-450/450D.
         • **Yaesu** (CAT binarny): FT-817/818, FT-857, FT-897.
-        • **Kenwood**: TS-590S/SG, TS-480, TS-2000. **Elecraft**: K3/K3S, KX2/KX3, K4.
+        • **Kenwood**: TS-590S/SG, TS-480, TS-2000. **Elecraft**: K2, K3/K3S, KX2/KX3, K4. \
+        **QRP Labs**: QDX/QCX/QMX. **(tr)uSDX**.
 
-        PTT przez CAT mają wszystkie poza IC-706MKIIG i IC-718 (dla nich RTS/DTR albo VOX). \
+        Znak **✓** przy modelu na liście oznacza radio sprawdzone na prawdziwym sprzęcie. \
+        PTT przez CAT nie jest dostępne w IC-706MKIIG, IC-718, IC-746PRO, IC-756PROIII i X108G \
+        (dla nich RTS/DTR albo VOX). \
         Tryb DATA (Data/Pkt w WSJT-X) obsługują IC-7100/7300/705/9700/7610 (USB-D) i nowsze Yaesu \
         (DATA-U). W pozostałych radiach ustaw w WSJT-X **Mode: USB**.
         """),
@@ -116,6 +140,12 @@ enum HelpContent {
         HelpSection(title: "Okno programu", body: """
         • **Wyświetlacz** – częstotliwość i emisja odczytane z radia.
         • **TX** – zapala się na czerwono podczas nadawania.
+        • **Wskaźnik S / PO** – podczas odbioru S-metr (S1…S9, S9+20…+60), podczas nadawania moc \
+        w procentach mocy maksymalnej. Wartości pochodzą z radia: S-metr podają Icom/Xiegu, nowsze \
+        Yaesu, FT-817/857/897 i radia przez Hamlib; moc – nowsze Icomy (IC-7100/7300/705/9700/7610), \
+        nowsze Yaesu, FT-817/857/897 i część radiów przez Hamlib. Kreska „—” oznacza brak odczytu. \
+        Odczyty są przybliżone (kalibracja jak w Hamlib). Programy klienckie mogą je odczytać \
+        komendami `l STRENGTH` i `l RFPOWER_METER`.
         • **SCAN** – zapala się na pomarańczowo przy szybkich zmianach częstotliwości \
         (co najmniej 4 w ciągu 2 s), np. gdy radio skanuje. Zmiany zlecone przez WSJT-X się nie liczą.
         • **Test sterowania** – ustawienie częstotliwości i PTT bez programu klienckiego. \
@@ -149,9 +179,29 @@ enum HelpContent {
         Kody w logu: `RPRT 0` OK, `-1` zły argument, `-5` radio nie odpowiada, \
         `-9` radio odrzuciło komendę, `-11` komenda nieobsługiwana.
         """),
+        HelpSection(title: "Sterownik Hamlib", body: """
+        CAT2RIG zawiera bibliotekę **Hamlib**, więc obsługuje także radia spoza własnej listy. \
+        W polu **Sterownik** wybierz **Hamlib**, a w polu **Model** – producenta i radio z menu \
+        (ponad 300 modeli; numer to numer modelu z `rigctl -l`). Port, prędkość, bity stopu, RTS/CTS, \
+        adres CI-V i PTT ustawiasz tak samo jak dla wbudowanych sterowników.
+
+        • **Wbudowany** – szybkie, przetestowane sterowniki CAT2RIG (zalecane dla radii z listy).
+        • **Hamlib** – radia spoza listy albo porównanie, gdy wbudowany sterownik nie działa.
+        • Model **Hamlib Dummy** to symulator radia – pozwala sprawdzić WSJT-X bez radia i bez portu.
+        • Komunikaty Hamlib trafiają do pliku `~/Library/Logs/CAT2RIG/hamlib.log` (błędy zawsze, \
+        z zaznaczonym **Pokaż ramki CAT** – pełny ślad komunikacji). Dołącz go do zgłoszenia błędu.
+
+        Hamlib jest na licencji **LGPL 2.1** i jest dołączony jako osobna biblioteka \
+        (Contents/Frameworks/libhamlib.4.dylib), którą można podmienić na własną wersję. \
+        Kod źródłowy: [github.com/Hamlib/Hamlib](https://github.com/Hamlib/Hamlib).
+        """),
         HelpSection(title: "Język i więcej informacji", body: """
         Język programu zmienisz w **CAT2RIG → Ustawienia…** (⌘,); domyślnie używany jest język \
-        systemu. Więcej opisów, także poszczególnych radiów, jest w **Wiki** projektu na GitHubie.
+        systemu. Więcej opisów, także poszczególnych radiów, jest w \
+        [Wiki projektu](https://github.com/SP5XTF/CAT2RIG/wiki/PL-Strona-glowna). \
+        Nowe wersje: [github.com/SP5XTF/CAT2RIG/releases](https://github.com/SP5XTF/CAT2RIG/releases). \
+        Problem lub pomysł? [Zgłoś go na GitHubie](https://github.com/SP5XTF/CAT2RIG/issues/new/choose) \
+        – najlepiej z logiem przy zaznaczonym „Pokaż ramki CAT”.
         """),
     ]
 
@@ -173,14 +223,18 @@ enum HelpContent {
         5. Tick **Start automatically** to connect right away next time.
         """),
         HelpSection(title: "Supported radios", body: """
-        • **Icom** (CI-V): IC-706MKIIG, IC-718, IC-7000, IC-7100, IC-7300, IC-705, IC-9700, IC-7610 \
-        and other CI-V models.
-        • **Xiegu** (CI-V): G90, X6100, X5105.
-        • **Yaesu** (newer CAT): FT-991/991A, FT-891, FT-710, FTDX10, FTDX101, FT-950, FT-450D.
+        • **Icom** (CI-V): IC-706MKIIG, IC-718, IC-746PRO, IC-756PROIII, IC-7000, IC-7200, \
+        IC-7410, IC-7600, IC-9100, IC-7100, IC-7300, IC-705, IC-9700, IC-7610 and other CI-V models.
+        • **Xiegu** (CI-V): G90, X6100, X5105, X108G.
+        • **Yaesu** (newer CAT): FT-991/991A, FT-891, FT-710, FTDX10, FTDX101, FTDX5000, \
+        FTDX3000, FTDX1200, FT-2000, FT-950, FT-450/450D.
         • **Yaesu** (binary CAT): FT-817/818, FT-857, FT-897.
-        • **Kenwood**: TS-590S/SG, TS-480, TS-2000. **Elecraft**: K3/K3S, KX2/KX3, K4.
+        • **Kenwood**: TS-590S/SG, TS-480, TS-2000. **Elecraft**: K2, K3/K3S, KX2/KX3, K4. \
+        **QRP Labs**: QDX/QCX/QMX. **(tr)uSDX**.
 
-        All of them have CAT PTT except the IC-706MKIIG and IC-718 (use RTS/DTR or VOX). \
+        A **✓** next to a model in the list means it was verified on a real radio. \
+        CAT PTT is not offered for the IC-706MKIIG, IC-718, IC-746PRO, IC-756PROIII and X108G \
+        (use RTS/DTR or VOX). \
         DATA mode (Data/Pkt in WSJT-X) is supported on the IC-7100/7300/705/9700/7610 (USB-D) and \
         newer Yaesu (DATA-U). With other radios set **Mode: USB** in WSJT-X.
         """),
@@ -216,6 +270,12 @@ enum HelpContent {
         HelpSection(title: "Main window", body: """
         • **Display** – frequency and mode read from the radio.
         • **TX** – red while transmitting.
+        • **S / PO meter** – S-meter while receiving (S1…S9, S9+20…+60), output power in percent of \
+        maximum while transmitting. Values come from the radio: S-meter on Icom/Xiegu, newer Yaesu, \
+        FT-817/857/897 and radios via Hamlib; power on newer Icoms (IC-7100/7300/705/9700/7610), newer \
+        Yaesu, FT-817/857/897 and some radios via Hamlib. A dash “—” means no reading. Readings are \
+        approximate (Hamlib calibration). Client programs can read them with `l STRENGTH` and \
+        `l RFPOWER_METER`.
         • **SCAN** – orange on rapid frequency changes (at least 4 within 2 s), e.g. when the \
         radio is scanning. Changes requested by WSJT-X don't count.
         • **Control test** – set a frequency and key PTT without a client. PTT really transmits – \
@@ -248,9 +308,29 @@ enum HelpContent {
         Log codes: `RPRT 0` OK, `-1` bad argument, `-5` radio not responding, \
         `-9` command rejected by the radio, `-11` command not supported.
         """),
+        HelpSection(title: "Hamlib driver", body: """
+        CAT2RIG includes the **Hamlib** library, so it also supports radios outside its own list. \
+        Set **Driver** to **Hamlib** and pick the maker and radio from the **Model** menu \
+        (300+ models; the number is the model number from `rigctl -l`). Port, baud rate, stop bits, \
+        RTS/CTS, CI-V address and PTT work the same as with the built-in drivers.
+
+        • **Built-in** – fast, tested CAT2RIG drivers (recommended for radios on the list).
+        • **Hamlib** – radios not on the list, or for comparison when a built-in driver misbehaves.
+        • The **Hamlib Dummy** model is a radio simulator – test WSJT-X without a radio or a port.
+        • Hamlib messages go to `~/Library/Logs/CAT2RIG/hamlib.log` (errors always, the full \
+        communication trace with **Show CAT frames** ticked). Attach it to bug reports.
+
+        Hamlib is licensed under the **LGPL 2.1** and ships as a separate library \
+        (Contents/Frameworks/libhamlib.4.dylib) that you may replace with your own build. \
+        Source code: [github.com/Hamlib/Hamlib](https://github.com/Hamlib/Hamlib).
+        """),
         HelpSection(title: "Language and more", body: """
         Change the program language in **CAT2RIG → Settings…** (⌘,); the system language is used by \
-        default. More documentation, including per-radio notes, is in the project's **Wiki** on GitHub.
+        default. More documentation, including per-radio notes, is in the \
+        [project wiki](https://github.com/SP5XTF/CAT2RIG/wiki). \
+        New versions: [github.com/SP5XTF/CAT2RIG/releases](https://github.com/SP5XTF/CAT2RIG/releases). \
+        A problem or an idea? [Report it on GitHub](https://github.com/SP5XTF/CAT2RIG/issues/new/choose) \
+        – ideally with the log while “Show CAT frames” is ticked.
         """),
     ]
 }

@@ -3,7 +3,12 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-VERSION="${VERSION:-1.4.0}"   # w CI nadpisywane numerem z tagu (v1.2 -> 1.2)
+VERSION="${VERSION:-1.7.0}"   # w CI nadpisywane numerem z tagu (v1.2 -> 1.2)
+
+# Hamlib (LGPL) – biblioteka dołączana do aplikacji. SKIP_HAMLIB=1 buduje bez niej.
+if [ "${SKIP_HAMLIB:-0}" != "1" ]; then
+    bash scripts/build_hamlib.sh || echo "UWAGA: nie udało się zbudować Hamlib – aplikacja będzie bez sterownika Hamlib."
+fi
 
 swift build -c release
 BIN="$(swift build -c release --show-bin-path)/CAT2RIG"
@@ -12,6 +17,15 @@ APP="CAT2RIG.app"
 rm -rf "$APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/CAT2RIG"
+
+# Hamlib: biblioteka w Frameworks, licencja i informacja o źródłach w Resources/Hamlib
+if [ "${SKIP_HAMLIB:-0}" != "1" ] && [ -f vendor/hamlib/lib/libhamlib.4.dylib ]; then
+    mkdir -p "$APP/Contents/Frameworks" "$APP/Contents/Resources/Hamlib"
+    cp vendor/hamlib/lib/libhamlib.4.dylib "$APP/Contents/Frameworks/"
+    cp vendor/hamlib/COPYING.LIB vendor/hamlib/SOURCE.txt "$APP/Contents/Resources/Hamlib/"
+    codesign --force --sign - "$APP/Contents/Frameworks/libhamlib.4.dylib"
+    echo "Dołączono Hamlib $(cat vendor/hamlib/VERSION)"
+fi
 
 # ikona
 cp Resources/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
@@ -43,6 +57,7 @@ cat > "$APP/Contents/Info.plist" <<PLIST
         <string>pl</string>
         <string>en</string>
     </array>
+    <key>NSHumanReadableCopyright</key>  <string>© 2026 Tomasz SP5XTF · github.com/SP5XTF/CAT2RIG · MIT</string>
     <key>LSApplicationCategoryType</key> <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>    <string>13.0</string>
     <key>NSHighResolutionCapable</key>   <true/>

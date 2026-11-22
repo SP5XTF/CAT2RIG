@@ -25,6 +25,7 @@ RTS/CTS i PTT linią RTS na tym samym porcie się wykluczają – CAT2RIG wtedy 
 
 ## Okno
 - **Wyświetlacz** z częstotliwością i emisją, lampka **TX**, wskaźnik **SCAN** (szybkie zmiany częstotliwości).
+- **Wskaźnik S / PO** – S-metr podczas odbioru, moc (%) podczas nadawania, gdy radio je podaje (Icom/Xiegu, nowsze Yaesu, FT-817/857/897, Hamlib). „—” = brak odczytu. Wartości przybliżone.
 - **Test sterowania** – częstotliwość i PTT bez programu klienckiego (PTT naprawdę nadaje!).
 - **Log** – komendy ustawiające, nieobsługiwane i wolne odpowiedzi; **Pokaż ramki CAT** dodaje surowy ruch.
 - **Start automatycznie** – łączenie po uruchomieniu; czeka na interfejs USB (próba co 5 s).

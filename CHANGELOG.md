@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.7.0
+- **S-meter and power meter** in the main window: S1…S9+60 while receiving, output power (%) while
+  transmitting – Icom/Xiegu (CI-V 15 02 / 15 11), newer Yaesu (SM0 / RM5), FT-817/857/897
+  (status 0xE7 / 0xF7) and Hamlib (STRENGTH / RFPOWER_METER); calibration tables from Hamlib
+- rigctl: `l STRENGTH` and `l RFPOWER_METER` (advertised in `\dump_state`), so loggers can show them
+- 8 new tests (96 total)
+
+## 1.6.0
+- **Hamlib included** (4.7.2, LGPL 2.1) – new **Driver: Hamlib** option gives access to every radio
+  supported by Hamlib (300+ models) without installing anything; models picked from a menu
+  grouped by manufacturer
+- Hamlib *Dummy* model works as a radio simulator (no port needed) – test WSJT-X without a radio
+- Hamlib messages go to `~/Library/Logs/CAT2RIG/hamlib.log`; *Show CAT frames* turns on Hamlib tracing
+- `scripts/build_hamlib.sh` builds a universal (arm64 + x86_64) libhamlib from the official release
+  (checksum-verified); `build_app.sh` and GitHub Actions bundle it into the app
+- Built-in drivers stay the default; CAT2RIG still works if the library is missing
+- License notice: `THIRD_PARTY_NOTICES.md`, help window, `Contents/Resources/Hamlib`
+- 7 new tests against the real Hamlib library, incl. cross-check of the catalogue's Hamlib numbers (88 total)
+
+## 1.5.0
+- **41 radio models** (catalogue checked against the Hamlib 4.7.1 list). New:
+  Icom IC-7200, IC-7410, IC-7600, IC-9100, IC-746PRO, IC-756PROIII; Xiegu X108G;
+  Yaesu FTDX5000, FTDX3000, FTDX1200, FT-2000; Elecraft K2; QRP Labs QDX/QCX/QMX; (tr)uSDX
+- Every model carries its **Hamlib model number** (groundwork for an optional Hamlib driver)
+- **✓ verified** marker in the model list for radios tested on real hardware
+- `scripts/radio_table.py` generates the supported-radios tables (README, wiki) from the code
+- New wiki page *Supported Radios* with CI-V addresses, baud rates, CAT PTT, DATA and Hamlib numbers
+- 2 new tests (81 total)
+
 ## 1.4.0
 - **Support for many radios**: Icom (IC-7000, IC-7100, IC-7300, IC-705, IC-9700, IC-7610, IC-718,
   other CI-V), Xiegu (G90, X6100, X5105), Yaesu text CAT (FT-991/991A, FT-891, FT-710, FTDX10,
@@ -11,10 +40,11 @@
 - Stop bits and RTS/CTS hardware flow control options
 - `\dump_state` covers 4 m and 23 cm and advertises CW-R, RTTY-R and PKT modes
 - Common driver interface (`RigBackend`), drivers `IcomRig`, `TextCatRig`, `YaesuBinaryRig`
-- 20 new tests with Kenwood, Yaesu and FT-817 simulators (78 total)
+- 20 new tests with Kenwood, Yaesu and FT-817 simulators (79 total)
 - Rewritten in-app help (PL/EN): radio settings, main window, extended troubleshooting
 - Warning when RTS/CTS and RTS PTT are set on the same port
 - Project wiki (EN/PL) in `wiki/`, release notes in `docs/releases/`
+- Help menu: Wiki, check for new versions, report a problem, project page (github.com/SP5XTF/CAT2RIG); clickable links in help and About
 
 ## 1.3.2
 - **Faster response to client commands.** macOS App Nap no longer slows CAT2RIG down when its

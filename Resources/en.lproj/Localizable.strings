@@ -79,3 +79,18 @@
 "Radio nie odpowiada – sprawdź kabel, prędkość i ustawienia CAT" = "Radio not responding – check the cable, baud rate and CAT settings";
 "To radio nie obsługuje PTT przez CAT – wybierz RTS, DTR albo brak / VOX." = "This radio has no CAT PTT – choose RTS, DTR or none / VOX.";
 "RTS/CTS i PTT linią RTS na tym samym porcie wykluczają się – wybierz PTT CAT, osobny port PTT albo wyłącz RTS/CTS." = "RTS/CTS and RTS PTT on the same port can't be used together – choose CAT PTT, a separate PTT port, or turn RTS/CTS off.";
+"Sprawdź nowe wersje…" = "Check for new versions…";
+"Zgłoś problem…" = "Report a problem…";
+"Strona projektu na GitHubie" = "Project page on GitHub";
+"✓ = sprawdzone na prawdziwym radiu; pozostałe modele przetestowano na symulatorach protokołów" = "✓ = verified on a real radio; other models were tested with protocol simulators";
+"Sterownik:" = "Driver:";
+"Wbudowany" = "Built-in";
+"Wybierz model…" = "Choose a model…";
+"Hamlib niedostępny" = "Hamlib not available";
+"Wbudowany: sterowniki CAT2RIG (41 modeli). Hamlib: wszystkie radia obsługiwane przez bibliotekę Hamlib." = "Built-in: CAT2RIG drivers (41 models). Hamlib: every radio supported by the Hamlib library.";
+"Hamlib nie zna modelu %ld" = "Hamlib doesn't know model %ld";
+"Biblioteka Hamlib nie jest dostępna." = "The Hamlib library is not available.";
+"Wybierz model Hamlib." = "Choose a Hamlib model.";
+"Moc wyjściowa w procentach mocy maksymalnej (gdy radio ją podaje)" = "Output power as a percentage of maximum (if the radio reports it)";
+"S-metr odczytany z radia (gdy radio go podaje)" = "S-meter read from the radio (if the radio reports it)";
+"Szczegółowy log Hamlib: %@" = "Detailed Hamlib log: %@";
