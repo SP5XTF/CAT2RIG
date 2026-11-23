@@ -22,7 +22,8 @@
 
 ---
 
-![Okno główne CAT2RIG](docs/screenshot.png)
+<img width="582" height="677" alt="Zrzut ekranu 2026-11-21 o 13 30 19" src="https://github.com/user-attachments/assets/3689e578-82b7-4b4c-be67-c97f49bb9325" />
+
 
 ## Możliwości
 
