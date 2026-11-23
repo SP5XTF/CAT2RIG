@@ -22,7 +22,8 @@
 
 ---
 
-![CAT2RIG main window](docs/screenshot.png)
+<img width="582" height="677" alt="Zrzut ekranu 2026-11-21 o 13 30 19" src="https://github.com/user-attachments/assets/b993fd42-b580-4371-8d0d-339c9f7c56f4" />
+
 
 ## Features
 
