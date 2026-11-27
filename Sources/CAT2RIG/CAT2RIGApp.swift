@@ -76,6 +76,33 @@ final class BridgeModel: ObservableObject {
     private let defaults = UserDefaults.standard
 
     @Published var ports: [String] = []
+    /// Dane USB portów (nazwa urządzenia, numer seryjny) – do listy i rozpoznawania po restarcie.
+    @Published var portInfos: [String: SerialPortInfo] = [:]
+    /// Trwa zamykanie portów w tle (przycisk Start zablokowany).
+    @Published var stopping = false
+
+    func portLabel(_ path: String) -> String {
+        portInfos[path]?.label ?? path
+    }
+
+    /// Odświeża listę portów razem z danymi USB.
+    private func loadPorts() -> [SerialPortInfo] {
+        let infos = SerialPort.portInfos()
+        ports = infos.map(\.path)
+        portInfos = Dictionary(infos.map { ($0.path, $0) }, uniquingKeysWith: { a, _ in a })
+        return infos
+    }
+
+    /// Zapisany port (ścieżka + identyfikator USB) -> aktualna ścieżka; loguje zmianę nazwy.
+    private func resolveSavedPort(pathKey: String, idKey: String, infos: [SerialPortInfo]) -> String? {
+        guard let path = defaults.string(forKey: pathKey), !path.isEmpty else { return nil }
+        let resolved = PortResolver.resolve(path: path, identity: defaults.string(forKey: idKey),
+                                            available: infos)
+        if let r = resolved, r != path {
+            appendLog(L("Interfejs ma nową nazwę portu: %@ → %@", path, r))
+        }
+        return resolved
+    }
     @Published var selectedPort: String
     /// Wybrany model radia; zmiana ustawia domyślne parametry portu i PTT.
     @Published var modelID: String {
@@ -219,21 +246,24 @@ final class BridgeModel: ObservableObject {
             cancelAutoStart(log: false)
             return
         }
-        let available = SerialPort.availablePorts()
-        ports = available
+        guard !stopping else { scheduleAutoStartRetry(); return }
+        let infos = loadPorts()
 
-        // zawsze port zapisany przy ostatnim udanym starcie – nigdy "pierwszy z listy"
-        let wantedPort = defaults.string(forKey: "port") ?? selectedPort
-        let wantedPtt = defaults.string(forKey: "pttPort") ?? ""
+        // zawsze interfejs zapisany przy ostatnim udanym starcie – rozpoznawany po numerze
+        // seryjnym USB, nawet jeśli po restarcie dostał inną nazwę; nigdy "pierwszy z listy"
+        let savedPort = defaults.string(forKey: "port") ?? ""
+        let savedPtt = defaults.string(forKey: "pttPort") ?? ""
+        let wantedPort = resolveSavedPort(pathKey: "port", idKey: "portID", infos: infos)
+        let needsPtt = (pttMethod == .rts || pttMethod == .dtr) && !savedPtt.isEmpty
+        let wantedPtt = needsPtt ? resolveSavedPort(pathKey: "pttPort", idKey: "pttPortID", infos: infos) : ""
         var missing = [String]()
-        if wantedPort.isEmpty || !available.contains(wantedPort) { missing.append(wantedPort) }
-        if (pttMethod == .rts || pttMethod == .dtr) && !wantedPtt.isEmpty && !available.contains(wantedPtt) {
-            missing.append(wantedPtt)
-        }
+        let dummy = driver == "hamlib" && hamlibModel == 1
+        if wantedPort == nil && !dummy { missing.append(savedPort) }
+        if needsPtt && wantedPtt == nil { missing.append(savedPtt) }
 
         if missing.isEmpty {
-            selectedPort = wantedPort
-            pttPort = wantedPtt
+            selectedPort = wantedPort ?? ""
+            pttPort = wantedPtt ?? ""
             if start(interactive: false) {
                 cancelAutoStart(log: false)
                 return
@@ -269,12 +299,17 @@ final class BridgeModel: ObservableObject {
     }
 
     func refreshPorts() {
-        ports = SerialPort.availablePorts()
+        let infos = loadPorts()
+        // zapisany interfejs mógł dostać nową nazwę (restart, inne gniazdo USB)
+        if !ports.contains(selectedPort),
+           let r = resolveSavedPort(pathKey: "port", idKey: "portID", infos: infos) {
+            selectedPort = r
+        }
         if !ports.contains(selectedPort) {
             selectedPort = ports.first ?? ""
         }
         if !pttPort.isEmpty && !ports.contains(pttPort) {
-            pttPort = ""
+            pttPort = resolveSavedPort(pathKey: "pttPort", idKey: "pttPortID", infos: infos) ?? ""
         }
         if ports.isEmpty {
             appendLog(L("Nie znaleziono portów – podłącz interfejs CI-V i kliknij Odśwież"))
@@ -293,6 +328,9 @@ final class BridgeModel: ObservableObject {
                 appendLog(L("Autostart: %@ – ponowię za 5 s", msg))
             }
             return false
+        }
+        if stopping {
+            return fail(L("Trwa zatrzymywanie – spróbuj za chwilę."))
         }
         let viaHamlib = driver == "hamlib"
         if viaHamlib && hamlib == nil {
@@ -390,6 +428,9 @@ final class BridgeModel: ObservableObject {
     private func saveSettings() {
         defaults.set(selectedPort, forKey: "port")
         defaults.set(modelID, forKey: "model")
+        // identyfikatory USB – żeby po restarcie znaleźć ten sam interfejs pod nową nazwą
+        defaults.set(portInfos[selectedPort]?.identity, forKey: "portID")
+        defaults.set(pttPort.isEmpty ? nil : portInfos[pttPort]?.identity, forKey: "pttPortID")
         defaults.set(driver, forKey: "driver")
         defaults.set(hamlibModel, forKey: "hamlibModel")
         defaults.set(baud, forKey: "baud")
@@ -402,24 +443,48 @@ final class BridgeModel: ObservableObject {
         defaults.set(lan, forKey: "lan")
     }
 
-    func stop() {
+    /// Zatrzymuje serwer i zamyka radio. Zamykanie portów idzie w tle, żeby okno nie
+    /// zawisło, gdy radio nie odpowiada. wait = true (zamykanie programu): czeka do 3 s.
+    func stop(wait: Bool = false) {
         guard rig != nil || server != nil else { return }
-        server?.stop()
-        server = nil
-        rig?.close()
+        let r = rig, s = server
         rig = nil
-        if let a = activity {
-            ProcessInfo.processInfo.endActivity(a)
-            activity = nil
-        }
+        server = nil
         running = false
-        statusText = L("Zatrzymany")
+        stopping = true
+        statusText = L("Zatrzymywanie…")
         freqText = "---.---.---"
         modeText = ""
         tx = false
         sMeterDB = nil
         powerPercent = nil
         scanning = false
+
+        let work: @Sendable () -> Void = {
+            s?.stop()
+            r?.close()                 // PTT wyłączane przed zamknięciem portu
+        }
+        if wait {
+            let group = DispatchGroup()
+            group.enter()
+            DispatchQueue.global(qos: .userInitiated).async { work(); group.leave() }
+            _ = group.wait(timeout: .now() + 3)
+            finishStop()
+        } else {
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                work()
+                Task { @MainActor in self?.finishStop() }
+            }
+        }
+    }
+
+    private func finishStop() {
+        if let a = activity {
+            ProcessInfo.processInfo.endActivity(a)
+            activity = nil
+        }
+        stopping = false
+        if !running { statusText = L("Zatrzymany") }
         appendLog(L("Zatrzymano"))
     }
 
@@ -541,7 +606,7 @@ struct ContentView: View {
                         HStack {
                             Picker("", selection: $m.selectedPort) {
                                 if m.ports.isEmpty { Text("brak portów").tag("") }
-                                ForEach(m.ports, id: \.self) { Text($0).tag($0) }
+                                ForEach(m.ports, id: \.self) { Text(verbatim: m.portLabel($0)).tag($0) }
                             }
                             .labelsHidden()
                             .frame(width: 260)
@@ -586,7 +651,7 @@ struct ContentView: View {
                             Text("Port PTT:")
                             Picker("", selection: $m.pttPort) {
                                 Text("ten sam co radio").tag("")
-                                ForEach(m.ports, id: \.self) { Text($0).tag($0) }
+                                ForEach(m.ports, id: \.self) { Text(verbatim: m.portLabel($0)).tag($0) }
                             }
                             .labelsHidden()
                             .frame(width: 220)
@@ -616,6 +681,7 @@ struct ContentView: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .frame(width: 80)
+                .disabled(m.stopping)
                 Text(m.statusText)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -718,7 +784,7 @@ struct ContentView: View {
             Text(m.errorMessage ?? "")
         }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)) { _ in
-            m.stop()
+            m.stop(wait: true)
         }
     }
 }

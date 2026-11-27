@@ -8,6 +8,8 @@
 
 **Does it read S-meter, power or SWR?** S-meter and power – yes, since 1.7.0 (where the radio reports them). SWR – not yet, so keep *Read and display PWR and SWR* unticked in WSJT-X.
 
+**Can I try it without a radio?** Yes – choose *Driver: Hamlib*, model *Hamlib → Dummy*, click Start (no port needed) and connect WSJT-X.
+
 **Is it signed by Apple?** It is ad-hoc signed, not notarized – right-click → Open on first launch.
 
 **Where are the settings stored?** `~/Library/Preferences/pl.hamradio.cat2rig.plist`.

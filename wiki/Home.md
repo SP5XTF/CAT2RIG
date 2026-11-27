@@ -4,6 +4,12 @@
 
 🇵🇱 [Wersja polska](PL-Strona-glowna)
 
+## What's new in 1.7.0
+- **Hamlib built in** – switch *Driver* to Hamlib for any of 300+ radios, nothing to install → [Hamlib driver](Hamlib-Driver)
+- **S-meter and power meter** in the main window → [Configuration](Configuration#window)
+
+All versions: [Changelog](Changelog) · Downloads: [Releases](https://github.com/SP5XTF/CAT2RIG/releases)
+
 ## Start here
 1. [Installation](Installation)
 2. [Configuration](Configuration) – model, port, PTT

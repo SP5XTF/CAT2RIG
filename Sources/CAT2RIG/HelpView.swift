@@ -167,6 +167,9 @@ enum HelpContent {
         • **Radio nie odpowiada** – sprawdź model, prędkość, adres CI-V i port (spróbuj drugiego \
         portu interfejsu); w Yaesu także bity stopu i RTS/CTS. Z ramkami CAT: są tylko `TX` – \
         radio milczy (prędkość, adres, ustawienia CAT); brak `TX` i `RX` – zły port lub kabel.
+        • **Po restarcie port ma inną nazwę** – CAT2RIG rozpoznaje interfejs po numerze seryjnym \
+        USB i sam wybiera nową nazwę (wpis w logu). Przy pierwszym uruchomieniu nowej wersji \
+        kliknij raz Start ręcznie z właściwym portem, żeby CAT2RIG zapamiętał interfejs.
         • **Port zajęty** – port trzyma inny program (flrig, rigctld, WSJT-X z ustawionym portem). \
         Zamknij go albo usuń port z jego ustawień.
         • **WSJT-X: Connection refused** – CAT2RIG nie działa albo port TCP się różni.
@@ -296,6 +299,9 @@ enum HelpContent {
         • **Radio not responding** – check model, baud rate, CI-V address and port (try the \
         interface's other port); for Yaesu also stop bits and RTS/CTS. With CAT frames on: only \
         `TX` – radio silent (baud, address, CAT settings); no `TX`/`RX` – wrong port or cable.
+        • **Port renamed after a reboot** – CAT2RIG recognises the interface by its USB serial \
+        number and picks the new name (logged). After updating, click Start once manually with \
+        the right port so CAT2RIG remembers the interface.
         • **Port busy** – another program holds the port (flrig, rigctld, WSJT-X with a port set). \
         Close it or remove the port from its settings.
         • **WSJT-X: Connection refused** – CAT2RIG isn't running or the TCP port differs.

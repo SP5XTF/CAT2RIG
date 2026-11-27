@@ -16,4 +16,5 @@ Set the same rate in the radio's menu. Stop bits 1, no RTS/CTS.
 
 - PTT: CAT (`TX;` / `RX;`).
 - CAT2RIG switches Auto Information off (`AI0;`).
+- Meters: not read by the built-in driver (scales differ between models) – use **Driver: Hamlib** if you need the S-meter.
 - No DATA mode via CAT2RIG: set **Mode: USB** in WSJT-X and choose the data audio source in the radio menu.

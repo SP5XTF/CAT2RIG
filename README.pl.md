@@ -22,8 +22,7 @@
 
 ---
 
-<img width="582" height="677" alt="Zrzut ekranu 2026-11-21 o 13 30 19" src="https://github.com/user-attachments/assets/3689e578-82b7-4b4c-be67-c97f49bb9325" />
-
+![Okno główne CAT2RIG](docs/screenshot.png)
 
 ## Możliwości
 
@@ -36,7 +35,7 @@
 - **Wskaźnik SCAN**, **test sterowania** (częstotliwość i PTT bez programu klienckiego), **log** komend klientów i surowych ramek CAT
 - **Hamlib w zestawie** – przełącz *Sterownik* na Hamlib, żeby użyć dowolnego z ponad 300 radiów, bez instalowania czegokolwiek (domyślne zostają sterowniki wbudowane)
 - **Autostart**, **uruchamianie przy logowaniu do macOS**, wbudowana **pomoc**, interfejs **po polsku i po angielsku**
-- Natywna aplikacja SwiftUI – bez Pythona i Hamlib w zestawie; 96 testów jednostkowych i integracyjnych
+- Natywna aplikacja SwiftUI – bez Pythona i Hamlib w zestawie; 105 testów jednostkowych i integracyjnych
 
 ## Obsługiwane radia
 

@@ -32,4 +32,5 @@ Addresses and baud rates are factory defaults – **check your radio's menu**. P
 - Memory mode: when a client sets a frequency, CAT2RIG switches the radio from memory (V/M) to VFO first.
 - DATA mode: *Data/Pkt* in WSJT-X selects USB-D (CI-V 1A 06); plain USB turns it off.
 - IC-706MKIIG, IC-718, IC-746PRO, IC-756PROIII, X108G: CAT PTT is not offered. Use an interface that keys with RTS or DTR, or VOX.
+- Meters: S-meter via CI-V `15 02` on all models; output power via `15 11` on the IC-7100/7300/705/9700/7610 (the IC-706MKIIG has no power reading).
 - CI-V is a shared bus; collisions while the radio scans are handled (damaged frames are dropped).

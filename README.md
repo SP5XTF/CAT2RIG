@@ -22,8 +22,7 @@
 
 ---
 
-<img width="582" height="677" alt="Zrzut ekranu 2026-11-21 o 13 30 19" src="https://github.com/user-attachments/assets/b993fd42-b580-4371-8d0d-339c9f7c56f4" />
-
+![CAT2RIG main window](docs/screenshot.png)
 
 ## Features
 
@@ -36,7 +35,7 @@
 - **SCAN indicator**, **control test** (set frequency / key PTT without a client), **log** of client commands and raw CAT frames
 - **Hamlib included** – switch *Driver* to Hamlib for any of its 300+ radios, nothing to install (built-in drivers stay the default)
 - **Auto-start**, **launch at macOS login**, built-in **help**, **English and Polish** UI
-- Native SwiftUI app, no Python, Hamlib built in, 96 unit and integration tests
+- Native SwiftUI app, no Python, Hamlib built in, 105 unit and integration tests
 
 ## Supported radios
 

@@ -18,4 +18,4 @@
 Configure → Rig Control → Hamlib: Rig **Hamlib NET rigctl**, Device `127.0.0.1:4532`, PTT przez Hamlib CAT, Initialize.
 
 ## Loggery i inne
-Wybierz *Hamlib NET rigctl* / *rigctld*, host `127.0.0.1`, port `4532`. Programów może być kilka naraz.
+Wybierz *Hamlib NET rigctl* / *rigctld*, host `127.0.0.1`, port `4532`. Programów może być kilka naraz. Loggery pokazujące S-metr mogą go odczytać z CAT2RIG (`l STRENGTH`); moc podczas nadawania to `l RFPOWER_METER`.

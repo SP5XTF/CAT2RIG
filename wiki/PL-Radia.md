@@ -69,6 +69,8 @@ To wartości fabryczne – **sprawdź menu radia**. Włącz **CI-V Transceive**,
 - **CAT RTS** włączone w radiu → zostaw **RTS/CTS**; gdy radio milczy, wyłącz CAT RTS i odznacz RTS/CTS.
 - *Data/Pkt* w WSJT-X włącza DATA-U; sprawdź w menu źródło audio dla DATA.
 
+**Mierniki:** S-metr przez CI-V `15 02` we wszystkich modelach, moc przez `15 11` w IC-7100/7300/705/9700/7610 (IC-706MKIIG nie podaje mocy). Yaesu (nowszy CAT): S-metr `SM0;`, moc `RM5;`. FT-817/857/897: statusy 0xE7/0xF7. Kenwood/Elecraft: mierniki tylko przez sterownik Hamlib.
+
 ## Yaesu – CAT binarny (FT-817/818, FT-857, FT-897)
 Prędkość 4800 (menu CAT RATE), **2 bity stopu**, PTT CAT. Rozdzielczość 10 Hz. *Data/Pkt* = tryb DIG.
 

@@ -16,6 +16,7 @@ FTDX5000/3000/1200, FT-2000, FT-950 and FT-450 use 8-digit frequencies, the othe
 - **CAT RTS:** if this menu item is *enabled* in the radio, keep **RTS/CTS** ticked. If the radio stays silent, disable CAT RTS in the radio and untick RTS/CTS.
 - **DATA mode:** *Data/Pkt* in WSJT-X selects DATA-U (`MD0C;`); the radio then takes audio from USB (check its DATA audio source menu).
 - CAT2RIG sends `AI0;` (Auto Information off) on connect.
+- Meters: S-meter `SM0;`, output power while transmitting `RM5;`.
 
 Expected log with *Show CAT frames*:
 ```
@@ -37,4 +38,5 @@ FT-817/818, FT-857, FT-897
 | PTT | CAT |
 
 - Frequency resolution is 10 Hz.
+- Meters: S-meter from the RX status (0xE7), power from the TX status (0xF7).
 - *Data/Pkt* selects DIG mode; configure DIG for USB in the radio's menu.

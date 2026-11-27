@@ -6,7 +6,7 @@ Requires Xcode 15+ (tests need full Xcode; Command Line Tools are enough to buil
 git clone https://github.com/SP5XTF/CAT2RIG.git
 cd CAT2RIG
 bash scripts/build_hamlib.sh   # Hamlib 4.7.2, universal (once, a few minutes)
-swift test              # 96 tests (Hamlib tests are skipped without the library)
+swift test              # 105 tests (Hamlib tests are skipped without the library)
 bash build_app.sh       # CAT2RIG.app (ad-hoc signed, includes Hamlib)
 bash build_dmg.sh       # CAT2RIG-X.Y.dmg
 ```

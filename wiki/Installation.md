@@ -10,6 +10,8 @@
    xattr -dr com.apple.quarantine /Applications/CAT2RIG.app
    ```
 
+The app is universal (Apple Silicon and Intel) and already contains the **Hamlib** library – nothing else to install.
+
 ## USB drivers
 Most radios appear as `/dev/cu.usbserial-…` without extra drivers. Some interfaces (e.g. the Silicon Labs CP210x chip in many Yaesu and Icom radios) may need the vendor's VCP driver on older macOS versions. If no new port appears after connecting the radio, install the driver for your cable's chip and click **Refresh** in CAT2RIG.
 

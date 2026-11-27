@@ -94,3 +94,6 @@
 "Moc wyjściowa w procentach mocy maksymalnej (gdy radio ją podaje)" = "Output power as a percentage of maximum (if the radio reports it)";
 "S-metr odczytany z radia (gdy radio go podaje)" = "S-meter read from the radio (if the radio reports it)";
 "Szczegółowy log Hamlib: %@" = "Detailed Hamlib log: %@";
+"Interfejs ma nową nazwę portu: %@ → %@" = "The interface has a new port name: %@ → %@";
+"Trwa zatrzymywanie – spróbuj za chwilę." = "Stopping in progress – try again in a moment.";
+"Zatrzymywanie…" = "Stopping…";

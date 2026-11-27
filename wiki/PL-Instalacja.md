@@ -10,6 +10,8 @@
    xattr -dr com.apple.quarantine /Applications/CAT2RIG.app
    ```
 
+Aplikacja jest uniwersalna (Apple Silicon i Intel) i zawiera już bibliotekę **Hamlib** – nic więcej nie trzeba instalować.
+
 ## Sterowniki USB
 Większość radiów pojawia się jako `/dev/cu.usbserial-…` bez dodatkowych sterowników. Niektóre interfejsy (np. układ Silicon Labs CP210x w wielu radiach Yaesu i Icom) na starszych macOS wymagają sterownika VCP producenta. Jeśli po podłączeniu radia nie pojawia się nowy port, zainstaluj sterownik i kliknij **Odśwież** w CAT2RIG.
 

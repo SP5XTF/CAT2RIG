@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.1
+- **Fix: Stop froze the app** when the radio didn't answer. Serial writes could block forever
+  when the device didn't take data; the port now works non-blocking with time limits, closing
+  discards pending output, and Stop closes the radio in the background
+- **Port renamed after a reboot**: CAT2RIG remembers the interface by its USB identity
+  (vendor/product ID, serial number, interface) and finds it under the new `/dev/cu.*` name –
+  auto-start no longer opens a different device that took the old name
+- Port list shows the USB device name and serial number
+- 9 new tests, incl. a pseudo-terminal that never reads (105 total)
+
 ## 1.7.0
 - **S-meter and power meter** in the main window: S1…S9+60 while receiving, output power (%) while
   transmitting – Icom/Xiegu (CI-V 15 02 / 15 11), newer Yaesu (SM0 / RM5), FT-817/857/897

@@ -12,6 +12,7 @@
   - [Kenwood, Elecraft, QRP](Kenwood-and-Elecraft)
 - [Troubleshooting](Troubleshooting)
 - [FAQ](FAQ)
+- [Changelog](Changelog)
 - Developers
   - [Building from Source](Building-from-Source)
   - [Developer Guide](Developer-Guide)
@@ -26,3 +27,4 @@
 - [Hamlib](PL-Hamlib)
 - [Problemy](PL-Problemy)
 - [FAQ](PL-FAQ)
+- [Historia zmian](Changelog)

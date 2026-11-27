@@ -4,6 +4,12 @@
 
 🇬🇧 [English version](Home)
 
+## Nowości w wersji 1.7.0
+- **Hamlib w zestawie** – przełącz *Sterownik* na Hamlib, żeby użyć dowolnego z ponad 300 radiów, bez instalowania czegokolwiek → [Sterownik Hamlib](PL-Hamlib)
+- **S-metr i miernik mocy** w oknie programu → [Konfiguracja](PL-Konfiguracja)
+
+Wszystkie wersje: [Historia zmian](Changelog) · Pobieranie: [Releases](https://github.com/SP5XTF/CAT2RIG/releases)
+
 ## Od czego zacząć
 1. [Instalacja](PL-Instalacja)
 2. [Konfiguracja](PL-Konfiguracja) – model, port, PTT

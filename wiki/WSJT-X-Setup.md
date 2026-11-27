@@ -22,7 +22,7 @@ Audio is independent of CAT2RIG: select the radio's USB audio device (or your so
 Configure → Rig Control → Hamlib: Rig **Hamlib NET rigctl**, Device `127.0.0.1:4532`, PTT via Hamlib CAT. Initialize.
 
 ## Loggers and other tools
-Choose *Hamlib NET rigctl* / *rigctld* and host `127.0.0.1`, port `4532`. Several programs can be connected at once.
+Choose *Hamlib NET rigctl* / *rigctld* and host `127.0.0.1`, port `4532`. Several programs can be connected at once. Loggers that display the S-meter can read it from CAT2RIG (`l STRENGTH`); power while transmitting is `l RFPOWER_METER`.
 
 ## Remote access
 Tick *Allow access from local network* in CAT2RIG and use the Mac's IP address instead of `127.0.0.1` on the other computer.
